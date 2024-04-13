@@ -1,6 +1,5 @@
 import React, { Suspense, lazy, useEffect } from "react";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import ProtectRoute from "./components/auth/ProtectRoute";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { LayoutLoader } from "./components/layout/Loaders";
 import axios from "axios";
 import { server } from "./constants/config";
@@ -15,36 +14,37 @@ const Chat = lazy(() => import("./pages/Chat"));
 const Groups = lazy(() => import("./pages/Groups"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
-const AdminLogin = lazy(() => import("./pages/admin/AdminLogin"));
-const Dashboard = lazy(() => import("./pages/admin/Dashboard"));
-const UserManagement = lazy(() => import("./pages/admin/UserManagement"));
-const ChatManagement = lazy(() => import("./pages/admin/ChatManagement"));
-const MessagesManagement = lazy(() =>
-  import("./pages/admin/MessageManagement")
-);
-
 const App = () => {
   const { user, loader } = useSelector((state) => state.auth);
 
   const dispatch = useDispatch();
 
   useEffect(() => {
-    axios
-      .get(`${server}/api/v1/user/me`, { withCredentials: true })
-      .then(({ data }) => dispatch(userExists(data.user)))
-      .catch((err) => dispatch(userNotExists()));
+    // Check if a default user is set (for development/testing)
+    const defaultUser = { id: 1, username: "testuser" };
+
+    if (!user) {
+      // Dispatch userExists action with the default user
+      dispatch(userExists(defaultUser));
+    }
   }, [dispatch]);
 
-  return loader ? (
-    <LayoutLoader />
-  ) : (
+  if (loader) {
+    return <LayoutLoader />;
+  }
+
+  return (
     <BrowserRouter>
       <Suspense fallback={<LayoutLoader />}>
         <Routes>
           <Route
             element={
               <SocketProvider>
-                <ProtectRoute user={user} />
+                {user ? (
+                  <Navigate to="/" replace />
+                ) : (
+                  <Navigate to="/login" replace />
+                )}
               </SocketProvider>
             }
           >
@@ -52,31 +52,8 @@ const App = () => {
             <Route path="/chat/:chatId" element={<Chat />} />
             <Route path="/groups" element={<Groups />} />
           </Route>
-          {/* 
-          <Route
-            path="/login"
-            element={
-              <ProtectRoute user={!user} redirect="/">
-                <Login />
-              </ProtectRoute>
-            }
-          /> */}
 
-          <Route
-            element={
-              <SocketProvider>
-                <ProtectRoute user={user} redirect="/login">
-                  <Home />
-                </ProtectRoute>
-              </SocketProvider>
-            }
-          />
-
-          <Route path="/admin" element={<AdminLogin />} />
-          <Route path="/admin/dashboard" element={<Dashboard />} />
-          <Route path="/admin/users" element={<UserManagement />} />
-          <Route path="/admin/chats" element={<ChatManagement />} />
-          <Route path="/admin/messages" element={<MessagesManagement />} />
+          <Route path="/login" element={<Login />} />
 
           <Route path="*" element={<NotFound />} />
         </Routes>
@@ -88,3 +65,4 @@ const App = () => {
 };
 
 export default App;
+
