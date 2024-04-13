@@ -52,8 +52,8 @@ const Login = () => {
       const { data } = await axios.post(
         `${server}/api/v1/user/login`,
         {
-          username: toshi47,
-          password: Qwerty,
+         username: username.value,
+          password: password.value,
         },
         config
       );
