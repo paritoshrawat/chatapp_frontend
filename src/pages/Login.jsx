@@ -11,7 +11,7 @@ import {
   Typography,
 } from "@mui/material";
 import axios from "axios";
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import toast from "react-hot-toast";
 import { useDispatch } from "react-redux";
 import { VisuallyHiddenInput } from "../components/styles/StyledComponents";
@@ -23,28 +23,17 @@ import { usernameValidator } from "../utils/validators";
 const Login = () => {
   const [isLogin, setIsLogin] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
-  const [usernameValue, setUsernameValue] = useState("");
-  const [passwordValue, setPasswordValue] = useState("");
 
   const toggleLogin = () => setIsLogin((prev) => !prev);
 
   const name = useInputValidation("");
   const bio = useInputValidation("");
-  const username = useInputValidation(usernameValue, usernameValidator);
-  const password = useInputValidation(passwordValue);
+  const username = useInputValidation("toshi47", usernameValidator);
+  const password = useInputValidation("Qwerty");
 
   const avatar = useFileHandler("single");
 
   const dispatch = useDispatch();
-
-  useEffect(() => {
-    console.log("Setting initial values");
-    setUsernameValue("toshi47");
-    setPasswordValue("Qwerty");
-  }, []);
-
-  console.log("Username value:", username.value);
-  console.log("Password value:", password.value);
 
   const handleLogin = async (e) => {
     e.preventDefault();
